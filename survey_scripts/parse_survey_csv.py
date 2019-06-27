@@ -7,7 +7,7 @@ import pandas as pd
 from survey_scripts.create_bar_plot import create_horizontal_bar_plot
 from survey_scripts.create_single_violin_plot import create_solo_violin_plot_horizontal
 
-path_to_csv = "../Literature_survey-usage_of_WFs - 2009-2018_2019-03-26.csv"
+path_to_csv = "../Literature_survey-usage_of_WFs-2009-2018_2019-05-23.csv"
 
 
 def generate_barplots(date, domains, fields):
@@ -71,6 +71,7 @@ with open(path_to_csv) as csv_file:
     num_traces_used = []
 
     total_papers_using_traces = 0
+    citation_sum_papers_using_traces = 0
     total_papers_using_realistic_traces = 0
     total_papers_using_open_source_traces = 0
 
@@ -86,12 +87,15 @@ with open(path_to_csv) as csv_file:
 
         domains = row[12]
         fields = row[13]
+        citation_count = int(row[14])
 
-        count = venue_dict.get(venue, [0, 0, 0])  # number of hits, number using traces, number of open source traces
+        count = venue_dict.get(venue, [0, 0, 0, 0])  # number of hits, number using traces, number of open source traces, number of citations
 
         if uses_wf_traces:
             count[0] += 1
             total_papers_using_traces += 1
+            count[3] += citation_count
+            citation_sum_papers_using_traces += citation_count
 
         if real_world_traces:
             count[1] += 1
@@ -152,26 +156,27 @@ with open(path_to_csv) as csv_file:
     threshold = 5
     if combine_below_threshold:
         new_venue_dict = dict()
-        count_other = [0, 0, 0]
-        combined_venues = ""
+        count_other = [0, 0, 0, 0]
+        combined_venues = []
         for venue, values in sorted(venue_dict.items(), key=lambda pair: pair[1], reverse=True):
             if values[0] == 0: continue
 
             if values[0] <= threshold:
-                combined_venues += venue + ", "
+                combined_venues.append(venue)
                 count_other[0] += values[0]
                 count_other[1] += values[1]
                 count_other[2] += values[2]
+                count_other[3] += values[3]
             else:
                 new_venue_dict[venue] = values
 
         new_venue_dict["other"] = count_other
         venue_dict = new_venue_dict
-        print(combined_venues)
+        print(", ".join(sorted(combined_venues)))
 
     table_header = " & Total"
-    table_line_amount_of_papers_using_traces = "Articles using traces & {0} (100\%)".format(
-        total_papers_using_traces)
+    table_line_amount_of_papers_using_traces = "Articles using traces & {} ({} citations)".format(
+        total_papers_using_traces, citation_sum_papers_using_traces)
     table_line_amount_of_papers_using_realistic_traces = "articles using \\emph{{realistic}} traces & {0} ({1:.0f}\%)".format(
         total_papers_using_realistic_traces, float(total_papers_using_realistic_traces)/total_papers_using_traces * 100)
     table_line_amount_of_papers_using_open_source_traces = "Articles using traces that are both {{\it realistic}} and {{\it open-access}} & {0} ({1:.0f}\%)".format(
@@ -180,12 +185,12 @@ with open(path_to_csv) as csv_file:
     for venue, values in sorted(venue_dict.items(), key=lambda pair: pair[1][0] if pair[0] != "other" else -1, reverse=True):
         if values[0] == 0: continue
         table_header += " & " + venue
-        table_line_amount_of_papers_using_traces += " & " + str(values[0])
+        table_line_amount_of_papers_using_traces += " & " + str(values[0]) + "({} citations)".format(values[3])
 
         using_realistic_trace_part = " & " + str(values[1])
         using_open_source_traces_part = " & " + str(values[2])
         if values[0] > 10:
-            table_line_amount_of_papers_using_traces += (" (100\%)")
+            # table_line_amount_of_papers_using_traces += (" (100\%)")
             using_realistic_trace_part += " ({0:.0f}\%)".format(float(values[1]) / float(values[0]) * 100)
             using_open_source_traces_part += " ({0:.0f}\%)".format(float(values[2]) / float(values[0]) * 100)
 
