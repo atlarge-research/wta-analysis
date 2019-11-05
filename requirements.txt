@@ -69,7 +69,7 @@ pyrsistent==0.14.11
 pyspark==2.4.0
 python-dateutil==2.7.5
 pytz==2018.7
-PyYAML==3.13
+PyYAML==5.1
 pyzmq==18.0.0
 qtconsole==4.4.3
 scipy==1.1.0
