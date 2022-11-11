@@ -66,7 +66,7 @@ Pygments==2.3.1
 pyhocon==0.3.48
 pyparsing==2.3.0
 pyrsistent==0.14.11
-pyspark==2.4.0
+pyspark==3.2.2
 python-dateutil==2.7.5
 pytz==2018.7
 PyYAML==5.1
